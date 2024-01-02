@@ -1,0 +1,84 @@
+- hosts: http1
+  user: root
+  tasks:
+
+    - name: Update and upgrade apt packages
+      become: true
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Install the pack "Venv"
+      apt:
+        name: python3-venv
+
+    - name: Install git
+      apt:
+        name: git
+
+    - name: Clone repository from git locally
+      git:
+        repo: "https://github.com/Yukislayers/Flask"
+        dest: "/home/myproject"
+        clone: yes
+        update: yes
+
+    - name: Install python requirements in venv
+      pip:
+        virtualenv_command: python3 -m venv
+        requirements: /home/myproject/requirements.txt
+        virtualenv: /home/myproject/venv
+
+    - name: Copy service file with owner and permissions to server
+      copy:
+        src: /home/akau/myproject/deploy/myProjectServices.services
+        dest: /etc/systemd/system/
+        owner: root
+        group: root
+        mode: '0777'
+
+    - name: Start Gunicorn service
+      systemd:
+        name: myproject
+        state: restarted
+        daemon-reload: yes
+
+    - name: Enable gunicorn service
+      systemd:
+        name: myproject
+        enabled: true
+
+    - name: Install nginx
+      apt:
+        name: nginx
+
+    - name: allow SSH
+      community.general.ufw:
+        name: "{{item}}"
+        rule: allow
+      loop:
+        - OpenSSH
+        - Nginx Full
+
+    - name: enable UFW
+      community.general.ufw:
+        state: reloaded
+
+    - name: COpy server block configuration file to server
+      copy:
+        src: myProjectRequests
+        dest: /etc/nginx/sites-available/myproject
+        owner: root
+        group: root
+        mode: '0777'
+
+    - name: Creating a symlink between sites-available and sites-enabled directories
+      file:
+        src: /etc/nginx/sites-available/myproject
+        dest: /etc/nginx/sites-enabled/myproject
+        state: link
+
+    - name: Start nginx
+      systemd:
+        name: nginx
+        state: restarted
