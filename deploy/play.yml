@@ -78,6 +78,12 @@
         dest: /etc/nginx/sites-enabled/myProjectRequests
         state: link
 
+    - name: Permission on a directory
+      file:
+        path: /home/myproject
+        owner: root
+        group: root
+        mode: '0777'
     - name: Start nginx
       systemd:
         name: nginx
