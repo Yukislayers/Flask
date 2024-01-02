@@ -1,4 +1,4 @@
-- hosts: http1
+- hosts: bdd1
   user: root
   tasks:
 
@@ -31,7 +31,7 @@
 
     - name: Copy service file with owner and permissions to server
       copy:
-        src: /home/akau/myproject/deploy/myProjectServices.services
+        src: myProjectServices.service
         dest: /etc/systemd/system/
         owner: root
         group: root
@@ -39,13 +39,13 @@
 
     - name: Start Gunicorn service
       systemd:
-        name: myproject
+        name: myProjectServices.service
         state: restarted
         daemon-reload: yes
 
     - name: Enable gunicorn service
       systemd:
-        name: myproject
+        name: myProjectServices.service
         enabled: true
 
     - name: Install nginx
@@ -64,18 +64,18 @@
       community.general.ufw:
         state: reloaded
 
-    - name: COpy server block configuration file to server
+    - name: Copy server block configuration file to server
       copy:
         src: myProjectRequests
-        dest: /etc/nginx/sites-available/myproject
+        dest: /etc/nginx/sites-available/myProjectRequests
         owner: root
         group: root
         mode: '0777'
 
     - name: Creating a symlink between sites-available and sites-enabled directories
       file:
-        src: /etc/nginx/sites-available/myproject
-        dest: /etc/nginx/sites-enabled/myproject
+        src: /etc/nginx/sites-available/myProjectRequests
+        dest: /etc/nginx/sites-enabled/myProjectRequests
         state: link
 
     - name: Start nginx

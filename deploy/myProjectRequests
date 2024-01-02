@@ -1,6 +1,6 @@
 server {
 	listen 80;
-	server_name bdd1 www.bdd1;
+	server_name 10.0.102.90;
 
 	location / {
 		include proxy_params;
